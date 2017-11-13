@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 项目初始化步骤
 
@@ -21,3 +22,6 @@
 
 7.开发模式下预览项目
     访问：http://localhost:8086/dist/view/index.html
+=======
+# dmall_fe_admin
+>>>>>>> 3526977ff9ec91168a2836ad2905fcb098313138
