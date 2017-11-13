@@ -2,7 +2,7 @@
  * @Author: Rosen
  * @Date:   2016-11-20 13:19:28
  * @Last Modified by:   huangegege
- * @Last Modified time: 2017-10-16 19:12:34
+ * @Last Modified time: 2017-11-13 16:34:34
  * 知识点：css单独打包、全局jquery引用、各种loader
  */
 
@@ -26,7 +26,7 @@ var config = {
     // path && publickPath
     output: {
         path: __dirname + '/dist/',
-        publicPath: WEBPACK_ENV === 'online' ? '//s.huanliu.org/admin/dist/' : '/dist/',
+        publicPath: WEBPACK_ENV === 'online' ? '//dmall-s.huanliu.org/admin/dist/' : '/dist/',
         filename: 'js/[name].js'
     },
     resolve: {
