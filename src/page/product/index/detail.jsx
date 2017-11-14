@@ -28,14 +28,19 @@ const ProductDetail = React.createClass({
             firstCategoryId     : '',
             secondCategoryList  : [],
             secondCategoryId    : '',
+            thirdCategoryList   : [],
+            thirdCategoryId     : '',
             name                : '',
             subtitle            : '',
             subImages           : [],
             price               : '',
             stock               : '',
             detail              : '',
-            status              : ''
-
+            status              : '',
+            goodProduct         : true,
+            newProduct          : false,
+            hotSale             : false,
+            discount            : ''
         };
     },
     componentDidMount: function(){
@@ -71,11 +76,25 @@ const ProductDetail = React.createClass({
             alert(err.msg || '哪里不对了~');
         });
     },
+    // 加载三级分类
+    loadThirdCategory(){
+        // 二级品类不存在时，不初始化三级分类
+        if(!this.state.secondCategoryId){
+            return;
+        }
+        _product.getCategory(this.state.secondCategoryId).then(res => {
+            this.setState({
+                thirdCategoryList   : res,
+                thirdCategoryId     : this.state.thirdCategoryId
+            });
+        }, err => {
+            alert(err.msg || '哪里不对了~');
+        });
+    },
     // 编辑的时候，需要初始化商品信息
     loadProduct(){
         // 有id参数时，读取商品信息
         if(this.state.id){
-            // 查询一级品类时，不传id
             _product.getProduct(this.state.id).then(res => {
                 let product = this.productAdapter(res)
                 this.setState(product);
@@ -83,16 +102,50 @@ const ProductDetail = React.createClass({
                 if(product.firstCategoryId){
                     this.loadSecondCategory();
                 }
+                // 有三级分类时，load三级列表
+                if (product.secondCategoryId) {
+                    this.loadThirdCategory();
+                }
+                this.initProductProperty();
             }, err => {
                 alert(err.msg || '哪里不对了~');
             });
         }
     },
+    // 初始化商品特征
+    initProductProperty(){
+        let goodProductEl = document.getElementsByName('goodProduct');
+        if (goodProductEl.length > 0) {
+            goodProductEl[0].checked = this.state.goodProduct;
+        }
+        let newProductEl = document.getElementsByName('newProduct');
+        if (newProductEl.length > 0) {
+            newProductEl[0].checked = this.state.newProduct;
+        }
+        let hotSaleEl = document.getElementsByName('hotSale');
+        if (hotSaleEl.length > 0) {
+            hotSaleEl[0].checked = this.state.hotSale;
+        }
+    },
     // 适配接口返回的数据
     productAdapter(product){
-        // 如果父品类是0（根品类），则categoryId作为一级品类
-        let firstCategoryId     = product.parentCategoryId === 0 ? product.categoryId : product.parentCategoryId,
-            secondCategoryId    = product.parentCategoryId === 0 ? '' : product.categoryId;
+        let firstCategoryId = '',
+            secondCategoryId = '',
+            thirdCategoryId = '';
+        if (product.grandParentCategoryId === 0 && product.parentCategoryId === 0) {
+            firstCategoryId = product.categoryId;
+        } else if (product.grandParentCategoryId === 0 && product.parentCategoryId !== 0) {
+            firstCategoryId = product.parentCategoryId;
+            secondCategoryId = product.categoryId;
+        } else if (product.grandParentCategoryId !== 0 && product.parentCategoryId !== 0) {
+            firstCategoryId = product.grandParentCategoryId;
+            secondCategoryId = product.parentCategoryId;
+            thirdCategoryId = product.categoryId;
+        } else {
+            alert('哪里不对了~');
+        }
+        // let firstCategoryId     = product.parentCategoryId === 0 ? product.categoryId : product.parentCategoryId,
+        //     secondCategoryId    = product.parentCategoryId === 0 ? '' : product.categoryId;
         return {
             categoryId          : product.categoryId,
             name                : product.name,
@@ -103,8 +156,16 @@ const ProductDetail = React.createClass({
             stock               : product.stock,
             firstCategoryId     : firstCategoryId,
             secondCategoryId    : secondCategoryId,
-            status              : product.status
+            thirdCategoryId     : thirdCategoryId,
+            status              : product.status,
+            goodProduct         : product.goodProduct === 1 ? true : false,
+            newProduct          : product.newProduct === 1 ? true : false,
+            hotSale             : product.hotSale === 1 ? true : false,
+            discount            : product.discount
         }
+    },
+    onSwitchChange(checked){
+        console.log(`switch to ${checked}`);
     },
     render() {
         return (
@@ -156,6 +217,36 @@ const ProductDetail = React.createClass({
                                             }
                                         </select> : null
                                     }
+                                    {this.state.thirdCategoryList.length ?  
+                                        <select type="password" className="form-control cate-select col-md-5" value={this.state.thirdCategoryId} readOnly>
+                                            <option value="">请选择三级品类</option>
+                                            {
+                                                this.state.thirdCategoryList.map((category, index) => {
+                                                    return (
+                                                        <option value={category.id} key={index}>{category.name}</option>
+                                                    );
+                                                })
+                                            }
+                                        </select> : null
+                                    }
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="" className="col-md-2 control-label">商品特征</label>
+                                <div className="checkbox col-md-2">
+                                    <label>
+                                        <input type="checkbox" name="goodProduct" disabled/> 好物优选
+                                    </label>
+                                </div>
+                                <div className="checkbox col-md-2">
+                                    <label>
+                                        <input type="checkbox" name="newProduct" disabled/> 新品
+                                    </label>
+                                </div>
+                                <div className="checkbox col-md-2">
+                                    <label>
+                                        <input type="checkbox" name="hotSale" disabled/> 热销
+                                    </label>
                                 </div>
                             </div>
                             <div className="form-group">
@@ -169,6 +260,19 @@ const ProductDetail = React.createClass({
                                             value={this.state.price}
                                             readOnly/>
                                         <div className="input-group-addon">元</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="discount" className="col-md-2 control-label">商品折扣</label>
+                                <div className="col-md-3">
+                                    <div className="input">
+                                        <input type="number"
+                                            className="form-control" 
+                                            id="discount" 
+                                            placeholder="折扣"
+                                            value={this.state.discount}
+                                            readOnly/>
                                     </div>
                                 </div>
                             </div>

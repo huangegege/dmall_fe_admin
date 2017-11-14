@@ -30,14 +30,19 @@ const ProductSave = React.createClass({
             firstCategoryId     : '',
             secondCategoryList  : [],
             secondCategoryId    : '',
+            thirdCategoryList  : [],
+            thirdCategoryId    : '',
             name                : '',
             subtitle            : '',
             subImages           : [],
             price               : '',
             stock               : '',
             detail              : '',
-            status              : ''
-
+            status              : '',
+            goodProduct         : true,
+            newProduct          : false,
+            hotSale             : false,
+            discount            : '1'
         };
     },
     componentDidMount: function(){
@@ -72,6 +77,20 @@ const ProductSave = React.createClass({
             alert(err.msg || '哪里不对了~');
         });
     },
+    // 加载三级分类
+    loadThirdCategory(){
+        // 二级品类不存在时，不初始化三级分类
+        if(!this.state.secondCategoryId){
+            return;
+        }
+        _product.getCategory(this.state.secondCategoryId).then(res => {
+            this.setState({
+                thirdCategoryList: res
+            });
+        }, err => {
+            alert(err.msg || '哪里不对了~');
+        });
+    },
     // 编辑的时候，需要初始化商品信息
     loadProduct(){
         // 有id参数时，读取商品信息
@@ -84,17 +103,52 @@ const ProductSave = React.createClass({
                 if(product.firstCategoryId){
                     this.loadSecondCategory();
                 }
+                // 有三级分类时，load三级列表
+                if(product.secondCategoryId){
+                    this.loadThirdCategory();
+                }
+                this.initProductProperty();
                 this.refs['rich-editor'].setValue(product.detail);
             }, err => {
                 alert(err.msg || '哪里不对了~');
             });
         }
     },
+    // 初始化商品特征
+    initProductProperty(){
+        let goodProductEl = document.getElementsByName('goodProduct');
+        if (goodProductEl.length > 0) {
+            goodProductEl[0].checked = this.state.goodProduct;
+        }
+        let newProductEl = document.getElementsByName('newProduct');
+        if (newProductEl.length > 0) {
+            newProductEl[0].checked = this.state.newProduct;
+        }
+        let hotSaleEl = document.getElementsByName('hotSale');
+        if (hotSaleEl.length > 0) {
+            hotSaleEl[0].checked = this.state.hotSale;
+        }
+    },
     // 适配接口返回的数据
     productAdapter(product){
+        let firstCategoryId = '',
+            secondCategoryId = '',
+            thirdCategoryId = '';
+        if (product.grandParentCategoryId === 0 && product.parentCategoryId === 0) {
+            firstCategoryId = product.categoryId;
+        } else if (product.grandParentCategoryId === 0 && product.parentCategoryId !== 0) {
+            firstCategoryId = product.parentCategoryId;
+            secondCategoryId = product.categoryId;
+        } else if (product.grandParentCategoryId !== 0 && product.parentCategoryId !== 0) {
+            firstCategoryId = product.grandParentCategoryId;
+            secondCategoryId = product.parentCategoryId;
+            thirdCategoryId = product.categoryId;
+        } else {
+            alert('哪里不对了~');
+        }
         // 如果父品类是0（根品类），则categoryId作为一级品类
-        let firstCategoryId     = product.parentCategoryId === 0 ? product.categoryId : product.parentCategoryId,
-            secondCategoryId    = product.parentCategoryId === 0 ? '' : product.categoryId;
+        // let firstCategoryId     = product.parentCategoryId === 0 ? product.categoryId : product.parentCategoryId,
+        //     secondCategoryId    = product.parentCategoryId === 0 ? '' : product.categoryId;
         return {
             categoryId          : product.categoryId,
             name                : product.name,
@@ -105,7 +159,12 @@ const ProductSave = React.createClass({
             stock               : product.stock,
             firstCategoryId     : firstCategoryId,
             secondCategoryId    : secondCategoryId,
-            status              : product.status
+            thirdCategoryId     : thirdCategoryId,
+            status              : product.status,
+            goodProduct         : product.goodProduct,
+            newProduct          : product.newProduct,
+            hotSale             : product.hotSale,
+            discount            : product.discount
         }
     },
     // 普通字段更新
@@ -130,7 +189,9 @@ const ProductSave = React.createClass({
         this.setState({
             firstCategoryId     : newValue,
             secondCategoryId    : 0,
-            secondCategoryList  : []
+            secondCategoryList  : [],
+            thirdCategoryId     : 0,
+            thirdCategoryList   : []
         }, () => {
             // 更新二级品类列表
             this.loadSecondCategory();
@@ -141,10 +202,22 @@ const ProductSave = React.createClass({
         let newValue    = e.target.value;
         // 更新二级选中值
         this.setState({
-            secondCategoryId    : newValue
+            secondCategoryId    : newValue,
+            thirdCategoryId     : 0,
+            thirdCategoryList   : []
+        }, () => {
+            // 更新三级品类列表
+            this.loadThirdCategory();
         });
     },
-
+    // 三级品类变化
+    onThirdCategoryChange(e){
+        let newValue    = e.target.value;
+        // 更新三级选中值
+        this.setState({
+            thirdCategoryId    : newValue
+        });
+    },
     // 图片上传成功
     onUploadSuccess(res){
         let subImages = this.state.subImages;
@@ -206,14 +279,18 @@ const ProductSave = React.createClass({
         e.preventDefault();
         // 需要提交的字段
         let product = {
-                categoryId          : this.state.secondCategoryId || this.state.firstCategoryId || 0,
+                categoryId          : this.state.thirdCategoryId || this.state.secondCategoryId || this.state.firstCategoryId || 0,
                 name                : this.state.name,
                 subtitle            : this.state.subtitle,
                 subImages           : this.state.subImages.join(','),
                 detail              : this.state.detail,
                 price               : this.state.price,
                 stock               : this.state.stock,
-                status              : this.state.status || 1 // 状态为正常
+                status              : this.state.status || 1, // 状态为正常
+                goodProduct         : this.state.goodProduct ? 1: 0,
+                newProduct          : this.state.newProduct ? 1 : 0,
+                hotSale             : this.state.hotSale ? 1 : 0,
+                discount            : this.state.discount
             },
             checkProduct = this.checkProduct(product);
         // 当为编辑时，添加id字段
@@ -233,6 +310,14 @@ const ProductSave = React.createClass({
             alert(checkProduct.msg);
         }
         return false;
+    },
+    onCheckBoxChange(e){
+        let name    = e.target.name,
+            checked   = e.target.checked;
+        // 更改state
+        this.setState({
+            [name] : checked
+        });
     },
     render() {
         return (
@@ -290,6 +375,36 @@ const ProductSave = React.createClass({
                                             }
                                         </select> : null
                                     }
+                                    {this.state.thirdCategoryList.length ?  
+                                        <select type="password" className="form-control cate-select col-md-5" value={this.state.thirdCategoryId} onChange={this.onThirdCategoryChange}>
+                                            <option value="">请选择三级品类</option>
+                                            {
+                                                this.state.thirdCategoryList.map((category, index) => {
+                                                    return (
+                                                        <option value={category.id} key={index}>{category.name}</option>
+                                                    );
+                                                })
+                                            }
+                                        </select> : null
+                                    }
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="" className="col-md-2 control-label">商品特征</label>
+                                <div className="checkbox col-md-2">
+                                    <label>
+                                        <input type="checkbox" name="goodProduct" onChange={this.onCheckBoxChange} /> 好物优选
+                                    </label>
+                                </div>
+                                <div className="checkbox col-md-2">
+                                    <label>
+                                        <input type="checkbox" name="newProduct" onChange={this.onCheckBoxChange} /> 新品
+                                    </label>
+                                </div>
+                                <div className="checkbox col-md-2">
+                                    <label>
+                                        <input type="checkbox" name="hotSale" onChange={this.onCheckBoxChange} /> 热销
+                                    </label>
                                 </div>
                             </div>
                             <div className="form-group">
@@ -304,6 +419,20 @@ const ProductSave = React.createClass({
                                             value={this.state.price}
                                             onChange={this.onValueChange}/>
                                         <div className="input-group-addon">元</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="discount" className="col-md-2 control-label">商品折扣</label>
+                                <div className="col-md-3">
+                                    <div className="input">
+                                        <input type="number" 
+                                            className="form-control" 
+                                            id="discount" 
+                                            placeholder="折扣"
+                                            name="discount"
+                                            value={this.state.discount}
+                                            onChange={this.onValueChange}/>
                                     </div>
                                 </div>
                             </div>
