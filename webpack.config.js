@@ -2,7 +2,7 @@
  * @Author: Rosen
  * @Date:   2016-11-20 13:19:28
  * @Last Modified by:   huangegege
- * @Last Modified time: 2017-11-13 17:32:08
+ * @Last Modified time: 2017-11-14 21:05:26
  * 知识点：css单独打包、全局jquery引用、各种loader
  */
 
@@ -86,7 +86,7 @@ var config = {
         // html 加载
         new HtmlWebpackPlugin({
             filename: 'view/index.html',
-            title: 'MMall 后台管理系统',
+            title: 'DMALL 后台管理系统',
             template: './src/index.html',
             favicon: './favicon.ico',
             inject: true,
@@ -103,7 +103,7 @@ var config = {
 
 // 开发环境下，使用devServer热加载
 if (WEBPACK_ENV === 'dev') {
-    config.entry.app.push('webpack-dev-server/client?http://localhost:8087');
+    config.entry.app.push('webpack-dev-server/client?http://localhost:8086');
 }
 
 module.exports = config;
