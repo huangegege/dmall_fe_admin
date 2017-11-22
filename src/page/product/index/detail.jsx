@@ -16,6 +16,8 @@ import PageTitle    from 'component/page-title/index.jsx';
 import MMUtile      from 'util/mm.jsx';
 import Product      from 'service/product.jsx';
 
+import { productTypes } from 'config/config.jsx'
+
 const _mm = new MMUtile();
 const _product = new Product();
 
@@ -40,7 +42,8 @@ const ProductDetail = React.createClass({
             goodProduct         : true,
             newProduct          : false,
             hotSale             : false,
-            discount            : ''
+            discount            : '',
+            type                : ''
         };
     },
     componentDidMount: function(){
@@ -144,8 +147,6 @@ const ProductDetail = React.createClass({
         } else {
             alert('哪里不对了~');
         }
-        // let firstCategoryId     = product.parentCategoryId === 0 ? product.categoryId : product.parentCategoryId,
-        //     secondCategoryId    = product.parentCategoryId === 0 ? '' : product.categoryId;
         return {
             categoryId          : product.categoryId,
             name                : product.name,
@@ -161,7 +162,8 @@ const ProductDetail = React.createClass({
             goodProduct         : product.goodProduct === 1 ? true : false,
             newProduct          : product.newProduct === 1 ? true : false,
             hotSale             : product.hotSale === 1 ? true : false,
-            discount            : product.discount
+            discount            : product.discount,
+            type                : product.type
         }
     },
     onSwitchChange(checked){
@@ -229,6 +231,21 @@ const ProductDetail = React.createClass({
                                             }
                                         </select> : null
                                     }
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="" className="col-md-2 control-label">商品类型</label>
+                                <div className="col-md-10">
+                                    <select type="password" className="form-control cate-select col-md-5" value={this.state.type} readOnly>
+                                        <option value="">请选择商品类型</option>
+                                        {
+                                            productTypes.map((type, index) => {
+                                                return (
+                                                    <option value={type.value} key={index}>{type.name}</option>
+                                                );
+                                            })
+                                        }
+                                    </select>
                                 </div>
                             </div>
                             <div className="form-group">

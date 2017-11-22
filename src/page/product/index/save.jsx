@@ -17,6 +17,8 @@ import RichEditor   from 'component/rich-editor/index.jsx';
 import MMUtile from 'util/mm.jsx';
 import Product      from 'service/product.jsx';
 
+import { productTypes } from 'config/config.jsx';
+
 const _mm = new MMUtile();
 const _product = new Product();
 
@@ -42,7 +44,8 @@ const ProductSave = React.createClass({
             goodProduct         : true,
             newProduct          : false,
             hotSale             : false,
-            discount            : '1'
+            discount            : '1',
+            type                : ''
         };
     },
     componentDidMount: function(){
@@ -146,9 +149,7 @@ const ProductSave = React.createClass({
         } else {
             alert('哪里不对了~');
         }
-        // 如果父品类是0（根品类），则categoryId作为一级品类
-        // let firstCategoryId     = product.parentCategoryId === 0 ? product.categoryId : product.parentCategoryId,
-        //     secondCategoryId    = product.parentCategoryId === 0 ? '' : product.categoryId;
+        console.log('type = ' + product.type);
         return {
             categoryId          : product.categoryId,
             name                : product.name,
@@ -164,11 +165,14 @@ const ProductSave = React.createClass({
             goodProduct         : product.goodProduct,
             newProduct          : product.newProduct,
             hotSale             : product.hotSale,
-            discount            : product.discount
+            discount            : product.discount,
+            type                : product.type || ''
         }
     },
     // 普通字段更新
     onValueChange(e){
+        console.log('onValueChange');
+        console.log(e);
         let name    = e.target.name,
             value   = e.target.value;
         // 更改state
@@ -290,7 +294,8 @@ const ProductSave = React.createClass({
                 goodProduct         : this.state.goodProduct ? 1: 0,
                 newProduct          : this.state.newProduct ? 1 : 0,
                 hotSale             : this.state.hotSale ? 1 : 0,
-                discount            : this.state.discount
+                discount            : this.state.discount,
+                type                : this.state.type
             },
             checkProduct = this.checkProduct(product);
         // 当为编辑时，添加id字段
@@ -387,6 +392,21 @@ const ProductSave = React.createClass({
                                             }
                                         </select> : null
                                     }
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="" className="col-md-2 control-label">商品类型</label>
+                                <div className="col-md-10">
+                                    <select type="password" name="type" className="form-control cate-select col-md-5" value={this.state.type} onChange={this.onValueChange}>
+                                        <option value="">请选择商品类型</option>
+                                        {
+                                            productTypes.map((type, index) => {
+                                                return (
+                                                    <option value={type.value} key={index}>{type.name}</option>
+                                                );
+                                            })
+                                        }
+                                    </select>
                                 </div>
                             </div>
                             <div className="form-group">

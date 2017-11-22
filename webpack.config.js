@@ -2,7 +2,7 @@
  * @Author: Rosen
  * @Date:   2016-11-20 13:19:28
  * @Last Modified by:   huangegege
- * @Last Modified time: 2017-11-14 21:05:26
+ * @Last Modified time: 2017-11-19 14:57:54
  * 知识点：css单独打包、全局jquery引用、各种loader
  */
 
@@ -37,6 +37,7 @@ var config = {
             component: path.join(__dirname, '/src/component'),
             service: path.join(__dirname, '/src/service'),
             page: path.join(__dirname, '/src/page'),
+            config: path.join(__dirname, '/src/config')
         }
     },
     module: {
